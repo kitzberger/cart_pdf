@@ -42,7 +42,7 @@ class PdfDemand extends AbstractEntity
     /**
      * @param int $debug
      */
-    public function setDebug(int $debug)
+    public function setDebug(int $debug): void
     {
         if ($debug) {
             $this->debug = $debug;
@@ -60,7 +60,7 @@ class PdfDemand extends AbstractEntity
     /**
      * @param int $fontSize
      */
-    public function setFontSize(int $fontSize)
+    public function setFontSize(int $fontSize): void
     {
         if ($fontSize) {
             $this->fontSize = $fontSize;
@@ -78,7 +78,7 @@ class PdfDemand extends AbstractEntity
     /**
      * @param bool $foldMarksEnabled
      */
-    public function setFoldMarksEnabled(bool $foldMarksEnabled)
+    public function setFoldMarksEnabled(bool $foldMarksEnabled): void
     {
         $this->foldMarksEnabled = $foldMarksEnabled;
     }
@@ -94,7 +94,7 @@ class PdfDemand extends AbstractEntity
     /**
      * @param bool $addressFieldMarksEnabled
      */
-    public function setAddressFieldMarksEnabled(bool $addressFieldMarksEnabled)
+    public function setAddressFieldMarksEnabled(bool $addressFieldMarksEnabled): void
     {
         $this->addressFieldMarksEnabled = $addressFieldMarksEnabled;
     }
