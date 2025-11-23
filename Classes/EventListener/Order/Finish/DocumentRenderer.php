@@ -11,9 +11,13 @@ namespace Extcode\CartPdf\EventListener\Order\Finish;
  * LICENSE file that was distributed with this source code.
  */
 
-use Extcode\CartPdf\Service\PdfService;
+use Extcode\Cart\Domain\Model\Cart\Cart;
+use Extcode\Cart\Domain\Model\Order\Item as OrderItem;
 use Extcode\Cart\Domain\Repository\Order\ItemRepository as OrderItemRepository;
 use Extcode\Cart\Event\Order\EventInterface;
+use Extcode\Cart\Event\Order\NumberGeneratorEvent;
+use Extcode\CartPdf\Service\PdfService;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use TYPO3\CMS\Extbase\Persistence\Generic\PersistenceManager;
@@ -26,6 +30,7 @@ class DocumentRenderer implements LoggerAwareInterface
         protected PersistenceManager $persistenceManager,
         protected OrderItemRepository $orderItemRepository,
         protected PdfService $pdfService,
+        protected EventDispatcherInterface $eventDispatcher,
     ) {}
 
     public function __invoke(EventInterface $event): void
@@ -41,11 +46,25 @@ class DocumentRenderer implements LoggerAwareInterface
 
         foreach ($generateDocuments as $documentType => $documentData) {
             if ($documentData) {
+                $this->createNumberIfMissing($orderItem, $documentType, $settings);
                 $this->pdfService->createPdf($orderItem, $documentType);
             }
         }
 
         $this->orderItemRepository->update($orderItem);
         $this->persistenceManager->persistAll();
+    }
+
+    protected function createNumberIfMissing(OrderItem $orderItem, string $pdfType, array $settings)
+    {
+        $getNumber = 'get' . ucfirst($pdfType) . 'Number';
+        if (!$orderItem->$getNumber()) {
+            $dummyCart = new Cart([]);
+            $createEvent = new NumberGeneratorEvent($dummyCart, $orderItem, $settings);
+            $createEvent->setOnlyGenerateNumberOfType([$pdfType]);
+            $this->eventDispatcher->dispatch($createEvent);
+            $orderItem = $createEvent->getOrderItem();
+            $this->orderItemRepository->update($orderItem);
+        }
     }
 }
